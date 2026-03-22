@@ -16,7 +16,14 @@ Example: /index.html?game=minecraft
 function page_loaded() {
     //Look in url for game parameter "www.controlbuddies.xyz/index.html?game=minecraft"
     const params = new URLSearchParams(window.location.search); // Get URLSearchParams object from the query string
+    const pageParam = params.get('page');
     const gameParam = params.get('game'); // Get the value of 'game' parameter ("minecraft" in example url)
+
+    if (pageParam === 'QuadHelp') {
+        const base = (typeof get_base_url === 'function') ? get_base_url().replace(/\/$/, '') : window.location.origin.replace(/\/$/, '');
+        window.location.href = base + '/pages/GuideToTheQuadraticFormula.html';
+        return;
+    }
 
     if (gameParam) {
         get_article_content(gameParam, document.getElementById("main_content")).then(() => {
@@ -238,7 +245,8 @@ function onKeyDown(event) {
         currentPosition++;
         // Check if the entire code has been entered
         if (currentPosition === konamiCode.length) {
-            window.location.href = "https://youtu.be/uHgt8giw1LY?si=zx4ygB6HQG4YrTcH"
+            const base = (typeof get_base_url === 'function') ? get_base_url().replace(/\/$/, '') : window.location.origin.replace(/\/$/, '');
+            window.location.href = base + '/pages/GuideToTheQuadraticFormula.html';
             reset();
         } else {
             // Set a timeout to reset if the user doesn't continue within 2 seconds

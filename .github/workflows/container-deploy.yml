@@ -1,0 +1,33 @@
+name: Build, push container and deploy (ACR → Function App)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ secrets.ACR_REGISTRY }}/proxy:${{ github.sha }}
+
+      - name: Configure Function App to use ACR image
+        env:
+          ACR_IMAGE: ${{ secrets.ACR_REGISTRY }}/proxy:${{ github.sha }}
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          AZURE_FUNCTIONAPP_NAME: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+        run: |
+          az functionapp config container set \
+            --name "$AZURE_FUNCTIONAPP_NAME" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --docker-custom-image-name "$ACR_IMAGE"

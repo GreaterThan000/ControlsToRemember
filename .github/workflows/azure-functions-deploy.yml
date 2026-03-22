@@ -1,0 +1,36 @@
+name: Build and Deploy (Azure Functions - custom handler)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Build release
+        run: cargo build --release --locked
+
+      - name: Prepare api package
+        run: |
+          mkdir -p api/proxy
+          cp target/release/proxy api/proxy/proxy
+
+      - name: Zip api folder
+        run: |
+          cd api
+          zip -r ../api.zip .
+
+      - name: Deploy to Azure Functions (zip deploy)
+        uses: azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: api.zip
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
